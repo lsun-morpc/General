@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .topnav {
+      overflow: hidden;
+      background-color: #333;
+    }
+
+    .topnav a {
+      float: left;
+      color: #f2f2f2;
+      text-align: center;
+      padding: 14px 16px;
+      text-decoration: none;
+      font-size: 17px;
+    }
+
+    .topnav a:hover {
+      background-color: #ddd;
+      color: black;
+    }
+
+    .topnav a.split {
+      float: right;
+      background-color: #04AA6D;
+      color: white;
+    }
+
+    .topnav .search-container {
+      float: right;
+    }
+
+    .topnav input[type=text] {
+      padding: 6px;
+      margin-top: 8px;
+      font-size: 17px;
+      border: none;
+    }
+
+    .topnav .search-container button {
+      float: right;
+      padding: 6px 10px;
+      margin-top: 8px;
+      margin-right: 16px;
+      background: #ddd;
+      font-size: 17px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .topnav .search-container button:hover {
+      background: #ccc;
+    }
+
+    .marker-tooltip {
+    background-color: rgba(255, 255, 255, 0.8);
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 5px;
+    width: 200px; /* Adjust the width as needed */
+    }
+
+    #Logo {background-color: white;}
+
+    #Home {background-color: white;}
+
+    #About {background-color: white;}
+
+    #Contact {background-color: white;}
+
+    #Help {background-color: white;}
+    
+    .tabnav {
+      display: none;
+    }
+    
+    #big-frame-container {
+    display: grid;
+    grid-template-columns: 3fr 0fr; /* Two columns with equal width */
+    gap: 10px; /* Adjust the gap between the maps as needed */
+    padding-left: 0.5px;
+    padding-right: 0.5px;
+    background-color: white;
+    border: 5px solid #ddd;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    
+    #map-container {
+      display: grid;
+      grid-template-columns: 5fr 3fr; /* Two columns with equal width */
+      gap: 10px; /* Adjust the gap between the maps as needed */
+      padding-left: 0.5px;
+      padding-right: 0.5px;
+    }
+
+    #map {
+      height: 500px;
+      width: calc(100% - 5px);
+      box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    
+    #mapping {
+      height: 500px;
+      width: calc(100% - 5px);
+      box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    
+    #simplemap {
+      height: 500px;
+      width: calc(100% - 5px);
+      box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    
+    #frame {
+      height: 500px;
+      width: calc(100% - 5px); 
+      background-color: #f0f0f0; 
+    }
+    
+    #subframe {
+      display: grid;
+      grid-template-rows: 1fr 3fr;
+      gap: 10px;
+      background-color: white;
+      padding: 0px;
+    }
+
+    .subframe-top,
+    .subframe-bottom {
+      padding: 10px;
+    }
+
+    .subframe-top {
+      background-color: #f0f0f0;
+      padding: 10px;
+      border: 5px solid #eee;
+      box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .subframe-bottom {
+      background-color: #f0f0f0;
+      padding: 10px;
+      border: 5px solid #eee;
+      box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    #subframe h3 {
+      margin-top: 0;
+    }
+
+    #subframe p {
+      margin-bottom: 0;
+    }
+
+    .category {
+      margin-bottom: 5px;
+    }
+
+    .category-label {
+    }
+
+    .star-rating {
+      color: gold;
+    }
+
+    .star-rating .fa-star-o {
+      color: #ccc;
+    }
+
+    #legend {
+    display: flex;
+    flex-direction: column;
+    }
+
+    .legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+    }
+
+    .legend-color {
+    width: 20px;
+    height: 20px;
+    border: 1px solid #000;
+    }
+
+    .legend-label {
+    margin-left: 5px;
+    }
+
+    @media screen and (max-width: 600px) {
+      .topnav a, .topnav input[type=text], .topnav .search-container button {
+        float: none;
+        display: block;
+        text-align: left;
+        width: 100%;
+        margin: 0;
+        padding: 14px;
+      }
+      .topnav input[type=text] {
+        border: 1px solid #ccc;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="topnav">
+  <a class="active" onclick="showLogo()"><img src="logo.png" alt="Logo" style="height: 20px;"></a>
+  <a class="active" onclick="showContent('Home')" href="#"> Home</a>
+  <a onclick="showContent('About')" href="#"> About</a>
+  <a onclick="showContent('Contact')" href="#"> Contact</a>
+  <a onclick="showHelp()" href="#" class="split" target="_blank">Help</a>
+  <div class="search-container">
+    <form action="/action_page.php">
+      <input type="text" placeholder="Search.." name="search">
+      <button type="submit"><i class="fa fa-search"></i></button>
+    </form>
+  </div>
+</div>
+
+<div id="Logo" class="tabnav">
+  <!--<h3>Logo</h3>
+  <p>Logo</p>-->
+  
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Speed Typer</title>
+  <style>
+    body {
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .heading {
+      margin-bottom: 20px;
+      font-size: 3rem;
+      color: black;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+    }
+
+    .timer, .errors, .accuracy, .cpm, .wpm {
+      background-color: #ccda46;
+      height: 60px;
+      width: 70px;
+      margin: 8px;
+      padding: 12px;
+      border-radius: 20%;
+      box-shadow: black 5px 8px 5px;
+    }
+
+    .cpm, .wpm {
+      display: none;
+    }
+
+    .header_text {
+      text-transform: uppercase;
+      font-size: 0.6rem;
+      font-weight: 600;
+    }
+
+    .curr_time, .curr_errors, .curr_accuracy, .curr_cpm, .curr_wpm {
+      font-size: 2.75rem;
+    }
+
+    .quote {
+      background-color: #ccda46;
+      font-size: 1.5rem;
+      margin: 10px;
+      padding: 25px;
+      box-shadow: black 5px 8px 5px;
+    }
+
+    .input_area {
+      background-color: #f5f5c6;
+      height: 80px;
+      width: 40%;
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 15px;
+      padding: 20px;
+      border: 0px;
+      box-shadow: black 5px 8px 5px;
+    }
+
+    .incorrect_char {
+      color: red;
+      text-decoration: underline;
+    }
+
+    .correct_char {
+      color: darkgreen;
+    }
+
+    .restart_btn {
+      display: none;
+      background-color: #326765;
+      font-size: 1.5rem;
+      padding: 10px;
+      border: 0px;
+      box-shadow: black 5px 8px 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="heading">Simple Speed Typing</div>
+    <div class="header">
+      <div class="wpm">
+        <div class="header_text">WPM</div>
+        <div class="curr_wpm">100</div>
+      </div>
+      <div class="cpm">
+        <div class="header_text">CPM</div>
+        <div class="curr_cpm">100</div>
+      </div>
+      <div class="errors">
+        <div class="header_text">Errors</div>
+        <div class="curr_errors">0</div>
+      </div>
+      <div class="timer">
+        <div class="header_text">Time</div>
+        <div class="curr_time">60s</div>
+      </div>
+      <div class="accuracy">
+        <div class="header_text">% Accuracy</div>
+        <div class="curr_accuracy">100</div>
+      </div>
+    </div>
+
+    <div class="quote">Click on the area below to start the game.</div>
+    <textarea class="input_area" placeholder="start typing here..." oninput="processCurrentText()" onfocus="startGame()"></textarea>
+    <button class="restart_btn" onclick="resetValues()">Restart</button>
+  </div>
+
+  <script>
+    // define the time limit
+    let TIME_LIMIT = 60;
+
+    // define quotes to be used
+    let quotes_array = [
+      "Push yourself, because no one else is going to do it for you.",
+      "Failure is the condiment that gives success its flavor.",
+      "Wake up with determination. Go to bed with satisfaction.",
+      "It's going to be hard, but hard does not mean impossible.",
+      "Learning never exhausts the mind.",
+      "The only way to do great work is to love what you do."
+    ];
+
+    // selecting required elements
+    let timer_text = document.querySelector(".curr_time");
+    let accuracy_text = document.querySelector(".curr_accuracy");
+    let error_text = document.querySelector(".curr_errors");
+    let cpm_text = document.querySelector(".curr_cpm");
+    let wpm_text = document.querySelector(".curr_wpm");
+    let quote_text = document.querySelector(".quote");
+    let input_area = document.querySelector(".input_area");
+    let restart_btn = document.querySelector(".restart_btn");
+    let cpm_group = document.querySelector(".cpm");
+    let wpm_group = document.querySelector(".wpm");
+    let error_group = document.querySelector(".errors");
+    let accuracy_group = document.querySelector(".accuracy");
+
+    let timeLeft = TIME_LIMIT;
+    let timeElapsed = 0;
+    let total_errors = 0;
+    let errors = 0;
+    let accuracy = 0;
+    let characterTyped = 0;
+    let current_quote = "";
+    let quoteNo = 0;
+    let timer = null;
+
+    function updateQuote() {
+      quote_text.textContent = null;
+      current_quote = quotes_array[quoteNo];
+
+      // separate each character and make an element 
+      // out of each of them to individually style them
+      current_quote.split('').forEach(char => {
+        const charSpan = document.createElement('span')
+        charSpan.innerText = char
+        quote_text.appendChild(charSpan)
+      })
+
+      // roll over to the first quote
+      if (quoteNo < quotes_array.length - 1)
+        quoteNo++;
+      else
+        quoteNo = 0;
+    }
+
+    function processCurrentText() {
+
+      // get current input text and split it
+      curr_input = input_area.value;
+      curr_input_array = curr_input.split('');
+
+      // increment total characters typed
+      characterTyped++;
+
+      errors = 0;
+
+      quoteSpanArray = quote_text.querySelectorAll('span');
+      quoteSpanArray.forEach((char, index) => {
+        let typedChar = curr_input_array[index]
+
+        // characters not currently typed
+        if (typedChar == null) {
+          char.classList.remove('correct_char');
+          char.classList.remove('incorrect_char');
+
+          // correct characters
+        } else if (typedChar === char.innerText) {
+          char.classList.add('correct_char');
+          char.classList.remove('incorrect_char');
+
+          // incorrect characters
+        } else {
+          char.classList.add('incorrect_char');
+          char.classList.remove('correct_char');
+
+          // increment number of errors
+          errors++;
+        }
+      });
+
+      // display the number of errors
+      error_text.textContent = total_errors + errors;
+
+      // update accuracy text
+      let correctCharacters = (characterTyped - (total_errors + errors));
+      let accuracyVal = ((correctCharacters / characterTyped) * 100);
+      accuracy_text.textContent = Math.round(accuracyVal);
+
+      // if current text is completely typed
+      // irrespective of errors
+      if (curr_input.length == current_quote.length) {
+        updateQuote();
+
+        // update total errors
+        total_errors += errors;
+
+        // clear the input area
+        input_area.value = "";
+      }
+    }
+
+    function updateTimer() {
+      if (timeLeft > 0) {
+        // decrease the current time left
+        timeLeft--;
+
+        // increase the time elapsed
+        timeElapsed++;
+
+        // update the timer text
+        timer_text.textContent = timeLeft + "s";
+      }
+      else {
+        // finish the game
+        finishGame();
+      }
+    }
+
+    function finishGame() {
+      // stop the timer
+      clearInterval(timer);
+
+      // disable the input area
+      input_area.disabled = true;
+
+      // show finishing text
+      quote_text.textContent = "Click on restart to start a new game.";
+
+      // display restart button
+      restart_btn.style.display = "block";
+
+      // calculate cpm and wpm
+      cpm = Math.round(((characterTyped / timeElapsed) * 60));
+      wpm = Math.round((((characterTyped / 5) / timeElapsed) * 60));
+
+      // update cpm and wpm text
+      cpm_text.textContent = cpm;
+      wpm_text.textContent = wpm;
+
+      // display the cpm and wpm
+      cpm_group.style.display = "block";
+      wpm_group.style.display = "block";
+    }
+
+    function startGame() {
+
+      resetValues();
+      updateQuote();
+
+      // clear old and start a new timer
+      clearInterval(timer);
+      timer = setInterval(updateTimer, 1000);
+    }
+
+    function resetValues() {
+      timeLeft = TIME_LIMIT;
+      timeElapsed = 0;
+      errors = 0;
+      total_errors = 0;
+      accuracy = 0;
+      characterTyped = 0;
+      quoteNo = 0;
+      input_area.disabled = false;
+
+      input_area.value = "";
+      quote_text.textContent = 'Click on the area below to start the game.';
+      accuracy_text.textContent = 100;
+      timer_text.textContent = timeLeft + 's';
+      error_text.textContent = 0;
+      restart_btn.style.display = "none";
+      cpm_group.style.display = "none";
+      wpm_group.style.display = "none";
+    }
+  </script>
+</body>
+</html>
+
+</div>
+
+<div id="Home" class="tabnav">
+  <!--<h3>Home</h3>
+  <p>Home is where the heart is..</p>-->
+  
+  <div id="big-frame-container">
+    <div id="map-container">
+      <div id="map" class="map">
+        <!-- Map content -->
+      </div>
+      <div id="subframe">
+        <div class="subframe-top">
+          <h3>Subframe Title</h3>
+          <p>This is some top text inside the subframe.</p>
+        </div>
+        <div class="subframe-bottom">
+          <h3>Color Legend</h3>
+          <div id="legend">
+            <div class="legend-item">
+              <div class="legend-color" style="background-color: #ff0000;"></div>
+              <div class="legend-label">High</div>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color" style="background-color: #00ff00;"></div>
+              <div class="legend-label">Medium</div>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color" style="background-color: #0000ff;"></div>
+              <div class="legend-label">Low</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Placeholder for the frame -->
+    <!-- <div id="frame"></div> -->
+  </div>
+</div>
+
+<div id="About" class="tabnav">
+  <!--<h3>About</h3>
+  <p>About us...</p>-->
+  
+  <div id="big-frame-container">
+    <div id="map-container">
+      <div id="mapping" class="mapping">
+        <!-- Map content -->
+      </div>
+      <div id="subframe">
+        <div class="subframe-top">
+          <h3>Subframe Title</h3>
+          <p>This is some top text inside the subframe.</p>
+        </div>
+        <div class="subframe-bottom">
+          <h3>Color Legend</h3>
+          <div id="legend">
+            <div class="legend-item">
+              <div class="legend-color" style="background-color: #ff0000;"></div>
+              <div class="legend-label">High</div>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color" style="background-color: #00ff00;"></div>
+              <div class="legend-label">Medium</div>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color" style="background-color: #0000ff;"></div>
+              <div class="legend-label">Low</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Placeholder for the frame -->
+    <!-- <div id="frame"></div> -->
+  </div>
+</div>
+
+<div id="Contact" class="tabnav">
+  <!--<h3>Contact</h3>
+  <p>Contact us...</p>-->
+  
+  <div id="big-frame-container">
+    <div id="map-container">
+      <div id="simplemap" class="simplemap">
+        <!-- Map content -->
+      </div>
+      <div id="subframe">
+        <div class="subframe-top">
+          <h3>Subframe Title</h3>
+          <p>This is some top text inside the subframe.</p>
+        </div>
+        <div class="subframe-bottom">
+          <h3>Color Legend</h3>
+          <div id="legend">
+            <div class="legend-item">
+              <div class="legend-color" style="background-color: #ff0000;"></div>
+              <div class="legend-label">High</div>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color" style="background-color: #00ff00;"></div>
+              <div class="legend-label">Medium</div>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color" style="background-color: #0000ff;"></div>
+              <div class="legend-label">Low</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Placeholder for the frame -->
+    <!-- <div id="frame"></div> -->
+  </div>
+</div>
+
+<div id="Help" class="tabnav">
+  <h3>Help</h3>
+  <p>Help us...</p>
+</div>
+
+<script>
+  showContent('Logo');
+  var markers = []; // Array to store markers
+  var hoveredMarker = null; // Keep track of the currently hovered marker
+  
+  function showLogo() {
+    var tabcontent = document.getElementsByClassName("tabnav");
+    for (var i = 0; i < tabcontent.length; i++) {
+      tabcontent[i].style.display = "none";
+    }
+    document.getElementById('Logo').style.display = "block";
+  }
+  
+  function showContent(tabName) {
+    var i, tabcontent, tablinks;
+    tabcontent = document.getElementsByClassName("tabnav");
+    for (i = 0; i < tabcontent.length; i++) {
+      tabcontent[i].style.display = "none";
+    }
+    document.getElementById(tabName).style.display = "block";
+    
+    setTimeout(function() {
+    switch(tabName) {
+        case 'Home':
+            initMaps();
+            break;
+        case 'About':
+            if (seamap) {
+                seamap.invalidateSize();
+                seamap.setView(currentCenter, currentZoom);
+            }
+            break;
+        case 'Contact':
+            initMap();
+            break;
+    }
+}, 100);
+}
+  
+  function showHelp() {
+    // Your existing code to show the "Help" tab
+    var prevTab = currentTab;
+    var tabcontent = document.getElementsByClassName("tabnav");
+    for (var i = 0; i < tabcontent.length; i++) {
+      tabcontent[i].style.display = "none";
+    }
+    document.getElementById('Help').style.display = "block";
+    currentTab = prevTab;
+    document.getElementById(currentTab).style.display = "block";
+    
+    // Open the link in a new tab
+    window.open("https://www.morpc.org/", "_blank");
+  }
+
+  function initMaps() {
+    var maps = document.querySelectorAll('.tabnav #map');
+    maps.forEach(function(map) {
+    var leafletMap = L.map(map).setView([40, -98.0], 4);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+    }).addTo(leafletMap);
+    
+    // Define city data with ratings for different categories
+    var cities = [
+       { 
+        name: 'Ithaca', 
+        location: [42.4440, -76.5019], 
+        ratings: {
+          Transportation: 3,
+          Safety: 5,
+          Health: 5,
+          Environment: 5
+        },
+        iconUrl: 'nyc-icon.png'
+      },
+      { 
+        name: 'Cortland', 
+        location: [42.6012, -76.1805], 
+        ratings: {
+          Transportation: 2,
+          Safety: 5,
+          Health: 4,
+          Environment: 4
+        },
+        iconUrl: 'nyc-icon.png'
+      },
+      { 
+        name: 'New York', 
+        location: [40.7128, -74.0060], 
+        ratings: {
+          Transportation: 5,
+          Safety: 3,
+          Health: 3,
+          Environment: 3
+        },
+        iconUrl: 'nyc-icon.png'
+      },
+      { 
+        name: 'Philadelphia', 
+        location: [39.9526, -75.1652], 
+        ratings: {
+          Transportation: 5,
+          Safety: 2,
+          Health: 3,
+          Environment: 3
+        },
+        iconUrl: 'philadelphia-icon.png'
+      },
+      { 
+        name: 'Washington DC', 
+        location: [38.9072, -77.0369], 
+        ratings: {
+          Transportation: 5,
+          Safety: 4,
+          Health: 5,
+          Environment: 4
+        },
+        iconUrl: 'dc-icon.png'
+      }
+    ];
+
+    // Add event listener for map click
+    leafletMap.on('click', function(e) {
+      // Clear existing markers except the hovered one
+      removeMarker();
+      
+      // Define the maximum distance for displaying cities (in meters)
+      var maxDistance = 50000; // Adjust this value as needed
+    
+    // Loop through cities and display markers for those within the maximum distance
+      cities.forEach(function(city) {
+        var cityLocation = L.latLng(city.location[0], city.location[1]);
+        var clickedLocation = L.latLng(e.latlng.lat, e.latlng.lng);
+        var distance = cityLocation.distanceTo(clickedLocation);
+        
+        // Display marker only if the city is within the maximum distance
+        if (distance <= maxDistance) {
+          // Generate HTML content for all categories based on the city's data
+          var categoriesHTML = '';
+          Object.keys(city.ratings).forEach(function(category) {
+            var starsHTML = '';
+            for (var i = 0; i < city.ratings[category]; i++) {
+              starsHTML += '<i class="fa fa-star star-rating"></i>'; // Yellow star
+            }
+            for (var j = city.ratings[category]; j < 5; j++) {
+              starsHTML += '<i class="fa fa-star-o star-rating"></i>'; // Empty star
+            }
+            categoriesHTML += '<div class="category"><span class="category-label">' + category + ': </span>' + starsHTML + '</div>';
+          });
+
+          // Add a popup with city name, ratings for all categories, and delete button
+          var popupContent = '<b>' + city.name + '</b><br>' + categoriesHTML + '<br>';
+          
+          // Create a custom icon with popup content as tooltip
+          var icon = L.divIcon({
+            className: 'custom-icon',
+            html: '<div class="marker-tooltip">' + popupContent + '</div>',
+            iconSize: [30, 42],
+            iconAnchor: [15, 42],
+            popupAnchor: [0, -42],
+          });
+          
+          // Create marker with custom icon
+          var marker = L.marker(city.location, { icon: icon }).addTo(leafletMap);
+          
+          // Add mouseover event to keep track of hovered marker
+          marker.on('mouseover', function() {
+            hoveredMarker = marker;
+          });
+          
+          // Add mouseout event to reset hovered marker when the mouse leaves the marker
+          marker.on('mouseout', function() {
+            hoveredMarker = null;
+          });
+          
+          // Add the marker to the markers array
+          markers.push(marker);
+        }
+      });
+    });
+  });
+}
+
+  function removeMarker() {
+    markers = markers.filter(function(marker) {
+      if (hoveredMarker && marker == hoveredMarker) {
+        marker.remove();
+      return false;
+    }
+    return true;
+  });
+}
+
+</script>
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Leaflet Map Example</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+</head>
+<body>
+  <div id="mapping" style="height: 600px;"></div>
+
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+  <script>
+    // Create the map and set the view
+    var seamap = L.map('mapping').setView([47.609056, -122.330412], 10);
+
+    // Define base layers
+    var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    });
+
+    var topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://opentopomap.org">OpenTopoMap</a> contributors'
+    });
+
+    var esriImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{x}/{y}', {
+      attribution: 'Tiles &copy; Esri'
+    });
+
+    var cartoDB = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 19
+    });
+
+    // Add CartoDB Positron as the default layer
+    cartoDB.addTo(seamap);
+
+    // Add layer control to switch between basemaps
+    var baseMaps = {
+      "OpenStreetMap": osm,
+      "Topo": topo,
+      "Esri Imagery": esriImagery,
+      "CartoDB Positron": cartoDB
+    };
+
+    L.control.layers(baseMaps).addTo(seamap);
+
+    // Example data for the markers
+    var seapoints = [
+      {lat: 47.609056, lng: -122.330412, popup: "Point 1: Seattle Center"},
+      {lat: 47.610056, lng: -122.331412, popup: "Point 2: Pike Place Market"}
+    ];
+
+    // Add circle markers with clustering
+    var seamarkers = L.markerClusterGroup();
+    seapoints.forEach(function(seapoint) {
+      var seamarker = L.circleMarker([seapoint.lat, seapoint.lng], {
+        fillColor: 'red',
+        fillOpacity: 0.6,
+        stroke: false,
+        radius: 4
+      }).bindPopup(seapoint.popup);
+      seamarkers.addLayer(seamarker);
+    });
+    seamap.addLayer(seamarkers);
+  </script>
+</body>
+</html>
+
+<!DOCTYPE html>
+<html>
+<body>
+  <div id="Contact" class="tabnav">
+    <h3>Help</h3>
+    <p>Help us...</p>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+    // Set up event listeners for tab activation
+    document.getElementById('homeTab').addEventListener('click', function() {
+        initMaps(); // Initialize or refresh the Home tab map
+    });
+    document.getElementById('aboutTab').addEventListener('click', function() {
+        if (seamap) {
+            seamap.invalidateSize(); // Refresh the About tab map
+            seamap.setView(currentCenter, currentZoom);
+        }
+    });
+    document.getElementById('contactTab').addEventListener('click', function() {
+        initMap(); // Initialize or refresh the Contact tab map
+    });
+});
+
+    function initMap() {
+      var map = L.map('simplemap').setView([40, -98.0], 4);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
+      
+      // Add pin
+      var markerSea = L.marker([47.6061, -122.3328]).addTo(map)
+    .bindPopup('Seattle');
+    
+      // Add point
+      var dotOrlando = L.circleMarker([28.5384, -81.3789], {
+      radius: 0,
+      color: 'red',
+      fillColor: 'red',
+      fillOpacity: 1
+      }).addTo(map).bindPopup('Orlando');
+      
+      // Add lines
+      var polyline = L.polyline([
+        [37.7749, -122.4194],  // San Francisco
+        [34.0522, -118.2437],  // Los Angeles
+        [36.1699, -115.1398]   // Las Vegas
+      ], {color: 'blue'}).addTo(map);
+
+      // Add polygons
+      var polygon = L.polygon([
+        [29.7604, -95.3698],   // Houston
+        [30.2672, -97.7431],   // Austin
+        [32.7767, -96.7970]    // Dallas
+      ], {color: 'red'}).addTo(map);
+
+      // Add a popup to the polyline
+      polyline.bindPopup("This is a polyline connecting San Francisco, Los Angeles, and Las Vegas.");
+
+      // Add a popup to the polygon
+      polygon.bindPopup("This is a polygon connecting Houston, Austin, and Dallas.");
+    }
+  </script>
+</body>
+</html>
+
+</body>
+</html>
